@@ -82,6 +82,26 @@ export const RouteProtector = ({ children }: { children: ReactNode }) => {
 				push('/login');
 			} else if (pathname === '/login') {
 				push('/');
+			} else {
+				switch (user?.userType) {
+					case 'admin':
+						if (!pathname.startsWith('/admin')) {
+							push('/admin');
+						}
+						break;
+					case 'lecturer':
+						if (!pathname.startsWith('/lecturer')) {
+							push('/lecturer');
+						}
+						break;
+					case 'student':
+						if (!pathname.startsWith('/student')) {
+							push('/student');
+						}
+						break;
+					default:
+						push('/not-found');
+				}
 			}
 		}
 	}, [isLoading, user, pathname, push]);

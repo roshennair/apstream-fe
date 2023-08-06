@@ -68,7 +68,7 @@ const LoginForm = () => {
 			/>
 			<div className="flex justify-end">
 				<button
-					className="bg-blue-500 text-white rounded-lg py-1 px-3 disabled:bg-gray-700"
+					className="bg-blue-600 text-white rounded-lg py-1 px-3 disabled:bg-gray-700"
 					disabled={isLoading}
 					type="submit"
 				>

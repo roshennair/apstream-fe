@@ -6,7 +6,7 @@ const LoginPage = () => {
 		<div className="min-h-screen flex justify-center items-center bg-gradient-to-br from-blue-500 to-blue-900">
 			<div className="bg-white p-5 rounded-lg max-w-sm w-full">
 				<h1 className="font-bold text-2xl text-center mb-5">
-					Log In to APStream
+					Log In to <span className="text-blue-600">APStream</span>
 				</h1>
 				<LoginForm />
 			</div>

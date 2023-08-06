@@ -4,7 +4,7 @@ export type User = {
 	hashedPassword: string;
 	createdAt: string;
 	updatedAt: string;
-	userType: string;
+	userType: 'admin' | 'lecturer' | 'student';
 	fullName: string;
 };
 
@@ -16,5 +16,5 @@ export type CreateUserParams = {
 	email: string;
 	password: string;
 	fullName: string;
-	userType: string;
+	userType: 'admin' | 'lecturer' | 'student';
 };
