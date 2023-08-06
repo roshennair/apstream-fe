@@ -8,11 +8,8 @@ import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Toaster, toast } from 'react-hot-toast';
 import { z } from 'zod';
-
-type LoginInputs = {
-	email: string;
-	password: string;
-};
+import Button from '../_components/Button';
+import type { LoginParams } from '../_services/auth/types';
 
 const loginFormSchema = z.object({
 	email: z.string().email(),
@@ -24,13 +21,13 @@ const LoginForm = () => {
 		register,
 		handleSubmit,
 		formState: { errors },
-	} = useForm<LoginInputs>({
+	} = useForm<LoginParams>({
 		resolver: zodResolver(loginFormSchema),
 	});
 	const [isLoading, setIsLoading] = useState(false);
 	const { login } = useAuth();
 
-	const handleLogin: SubmitHandler<LoginInputs> = async (data) => {
+	const handleLogin: SubmitHandler<LoginParams> = async (data) => {
 		try {
 			setIsLoading(true);
 			await login(data);
@@ -67,13 +64,9 @@ const LoginForm = () => {
 				error={errors.password}
 			/>
 			<div className="flex justify-end">
-				<button
-					className="bg-blue-600 text-white rounded-lg py-1 px-3 disabled:bg-gray-700"
-					disabled={isLoading}
-					type="submit"
-				>
+				<Button disabled={isLoading} type="submit">
 					{isLoading ? 'Loading...' : 'Log In'}
-				</button>
+				</Button>
 			</div>
 			<Toaster
 				toastOptions={{

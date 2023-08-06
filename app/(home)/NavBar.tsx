@@ -1,5 +1,6 @@
 'use client';
 
+import Button from '../_components/Button';
 import { useAuth } from '../_contexts/auth';
 
 const NavBar = () => {
@@ -28,12 +29,12 @@ const NavBar = () => {
 							{user?.userType}
 						</span>
 					</div>
-					<button
+					<Button
 						className="bg-blue-600 ml-4 text-white rounded-lg py-1 px-3"
 						onClick={handleLogout}
 					>
 						Log out
-					</button>
+					</Button>
 				</div>
 			</div>
 		</div>

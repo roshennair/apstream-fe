@@ -8,8 +8,8 @@ export type User = {
 	fullName: string;
 };
 
-export type FetchSelfResponse = {
-	self: User;
+export type FetchUserResponse = {
+	user: User;
 };
 
 export type CreateUserParams = {
@@ -17,4 +17,8 @@ export type CreateUserParams = {
 	password: string;
 	fullName: string;
 	userType: 'admin' | 'lecturer' | 'student';
+};
+
+export type FetchAllUsersResponse = {
+	users: User[];
 };

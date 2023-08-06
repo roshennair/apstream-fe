@@ -26,7 +26,7 @@ const FormInput = <FormValues extends FieldValues>({
 	const errorMessage = error?.message;
 
 	return (
-		<div>
+		<>
 			<div className="flex flex-col">
 				<label htmlFor={`${name}-input`}>
 					{label}
@@ -34,7 +34,7 @@ const FormInput = <FormValues extends FieldValues>({
 				</label>
 				<input
 					{...register(name, { required })}
-					className="border-2 p-1 rounded-md"
+					className="border-2 px-2 py-1 rounded-md"
 					id={`${name}-input`}
 					name={name}
 					type={type}
@@ -45,7 +45,7 @@ const FormInput = <FormValues extends FieldValues>({
 			{errorMessage && (
 				<p className="mt-1 text-red-600">{errorMessage}</p>
 			)}
-		</div>
+		</>
 	);
 };
 

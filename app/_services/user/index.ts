@@ -1,16 +1,20 @@
-import type { CreateUserParams, FetchSelfResponse } from './types';
+import type {
+	CreateUserParams,
+	FetchAllUsersResponse,
+	FetchUserResponse,
+} from './types';
 
 const USER_API_URL = process.env.NEXT_PUBLIC_API_URL + '/user';
 
 export const fetchSelf = async () => {
-	const response = await fetch(USER_API_URL, {
+	const response = await fetch(`${USER_API_URL}/me`, {
 		credentials: 'include',
 		cache: 'no-store',
 	});
 	if (!response.ok) {
 		throw await response.json();
 	}
-	return (await response.json()) as FetchSelfResponse;
+	return (await response.json()) as FetchUserResponse;
 };
 
 export const createUser = async (params: CreateUserParams) => {
@@ -27,4 +31,26 @@ export const createUser = async (params: CreateUserParams) => {
 		throw await response.json();
 	}
 	return;
+};
+
+export const fetchUser = async (id: string) => {
+	const response = await fetch(`${USER_API_URL}/${id}`, {
+		credentials: 'include',
+		cache: 'no-store',
+	});
+	if (!response.ok) {
+		throw await response.json();
+	}
+	return (await response.json()) as FetchUserResponse;
+};
+
+export const fetchAllUsers = async () => {
+	const response = await fetch(USER_API_URL, {
+		credentials: 'include',
+		cache: 'no-store',
+	});
+	if (!response.ok) {
+		throw await response.json();
+	}
+	return (await response.json()) as FetchAllUsersResponse;
 };

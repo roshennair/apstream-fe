@@ -10,7 +10,7 @@ const StudentLayout = ({ children }: { children: ReactNode }) => {
 			<SideBar>
 				<SideBarLink link={'/student'}>Dashboard</SideBarLink>
 			</SideBar>
-			<div className="p-2">{children}</div>
+			<div className="p-2 w-full">{children}</div>
 		</div>
 	);
 };

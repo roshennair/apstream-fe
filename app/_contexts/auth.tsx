@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 	const fetchSelfFromApi = async () => {
 		try {
-			const { self } = await fetchSelf();
+			const { user: self } = await fetchSelf();
 			setUser(self);
 		} catch {
 			setUser(null);
@@ -77,31 +77,31 @@ export const RouteProtector = ({ children }: { children: ReactNode }) => {
 	const { push } = useRouter();
 
 	useEffect(() => {
-		if (!isLoading) {
-			if (!user) {
-				push('/login');
-			} else if (pathname === '/login') {
-				push('/');
-			} else {
-				switch (user?.userType) {
-					case 'admin':
-						if (!pathname.startsWith('/admin')) {
-							push('/admin');
-						}
-						break;
-					case 'lecturer':
-						if (!pathname.startsWith('/lecturer')) {
-							push('/lecturer');
-						}
-						break;
-					case 'student':
-						if (!pathname.startsWith('/student')) {
-							push('/student');
-						}
-						break;
-					default:
-						push('/not-found');
-				}
+		if (isLoading) return;
+
+		if (!user) {
+			push('/login');
+		} else if (pathname === '/login') {
+			push('/');
+		} else {
+			switch (user?.userType) {
+				case 'admin':
+					if (!pathname.startsWith('/admin')) {
+						push('/admin');
+					}
+					break;
+				case 'lecturer':
+					if (!pathname.startsWith('/lecturer')) {
+						push('/lecturer');
+					}
+					break;
+				case 'student':
+					if (!pathname.startsWith('/student')) {
+						push('/student');
+					}
+					break;
+				default:
+					push('/not-found');
 			}
 		}
 	}, [isLoading, user, pathname, push]);

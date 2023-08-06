@@ -12,7 +12,7 @@ const AdminLayout = ({ children }: { children: ReactNode }) => {
 				<SideBarLink link={'/admin/users'}>Users</SideBarLink>
 				<SideBarLink link={'/admin/modules'}>Modules</SideBarLink>
 			</SideBar>
-			<div className="p-2">{children}</div>
+			<div className="p-2 w-full">{children}</div>
 		</div>
 	);
 };
