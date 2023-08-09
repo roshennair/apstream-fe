@@ -1,10 +1,18 @@
 import { Metadata } from 'next';
+import CreateModuleButton from './CreateModuleButton';
+import ModulesTable from './ModulesTable';
 
 const ManageModulesPage = () => {
 	return (
-		<div>
-			<h1 className="text-3xl font-bold">Modules</h1>
-		</div>
+		<>
+			<div className="flex items-center justify-between">
+				<h1 className="text-3xl font-bold">Modules</h1>
+				<CreateModuleButton />
+			</div>
+			<div className="mt-5">
+				<ModulesTable />
+			</div>
+		</>
 	);
 };
 

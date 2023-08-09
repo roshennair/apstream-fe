@@ -20,7 +20,7 @@ const LoginForm = () => {
 	const {
 		register,
 		handleSubmit,
-		formState: { errors },
+		formState: { errors, isValid },
 	} = useForm<LoginParams>({
 		resolver: zodResolver(loginFormSchema),
 	});
@@ -64,7 +64,7 @@ const LoginForm = () => {
 				error={errors.password}
 			/>
 			<div className="flex justify-end">
-				<Button disabled={isLoading} type="submit">
+				<Button disabled={isLoading || !isValid} type="submit">
 					{isLoading ? 'Loading...' : 'Log In'}
 				</Button>
 			</div>

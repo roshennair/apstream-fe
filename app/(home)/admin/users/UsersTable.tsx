@@ -34,6 +34,12 @@ const UsersTable = () => {
 							Loading...
 						</td>
 					</tr>
+				) : users.length === 0 ? (
+					<tr>
+						<td colSpan={3} className="text-center p-2">
+							No users found
+						</td>
+					</tr>
 				) : (
 					users.map((user) => (
 						<tr key={user.id} className="border-y">

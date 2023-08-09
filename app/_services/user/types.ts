@@ -19,6 +19,6 @@ export type CreateUserParams = {
 	userType: 'admin' | 'lecturer' | 'student';
 };
 
-export type FetchAllUsersResponse = {
+export type FetchUsersResponse = {
 	users: User[];
 };

@@ -26,7 +26,7 @@ const FormInput = <FormValues extends FieldValues>({
 	const errorMessage = error?.message;
 
 	return (
-		<>
+		<div>
 			<div className="flex flex-col">
 				<label htmlFor={`${name}-input`}>
 					{label}
@@ -45,7 +45,7 @@ const FormInput = <FormValues extends FieldValues>({
 			{errorMessage && (
 				<p className="mt-1 text-red-600">{errorMessage}</p>
 			)}
-		</>
+		</div>
 	);
 };
 

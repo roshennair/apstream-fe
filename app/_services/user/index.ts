@@ -1,20 +1,20 @@
 import type {
 	CreateUserParams,
-	FetchAllUsersResponse,
 	FetchUserResponse,
+	FetchUsersResponse,
 } from './types';
 
 const USER_API_URL = process.env.NEXT_PUBLIC_API_URL + '/user';
 
-export const fetchSelf = async () => {
-	const response = await fetch(`${USER_API_URL}/me`, {
+export const fetchAllUsers = async () => {
+	const response = await fetch(USER_API_URL, {
 		credentials: 'include',
 		cache: 'no-store',
 	});
 	if (!response.ok) {
 		throw await response.json();
 	}
-	return (await response.json()) as FetchUserResponse;
+	return (await response.json()) as FetchUsersResponse;
 };
 
 export const createUser = async (params: CreateUserParams) => {
@@ -33,8 +33,8 @@ export const createUser = async (params: CreateUserParams) => {
 	return;
 };
 
-export const fetchUser = async (id: string) => {
-	const response = await fetch(`${USER_API_URL}/${id}`, {
+export const fetchSelf = async () => {
+	const response = await fetch(`${USER_API_URL}/me`, {
 		credentials: 'include',
 		cache: 'no-store',
 	});
@@ -44,13 +44,13 @@ export const fetchUser = async (id: string) => {
 	return (await response.json()) as FetchUserResponse;
 };
 
-export const fetchAllUsers = async () => {
-	const response = await fetch(USER_API_URL, {
+export const fetchUser = async (id: string) => {
+	const response = await fetch(`${USER_API_URL}/${id}`, {
 		credentials: 'include',
 		cache: 'no-store',
 	});
 	if (!response.ok) {
 		throw await response.json();
 	}
-	return (await response.json()) as FetchAllUsersResponse;
+	return (await response.json()) as FetchUserResponse;
 };
