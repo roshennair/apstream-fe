@@ -1,8 +1,9 @@
-import { FetchUsersResponse } from '../user/types';
+import type { FetchLecturesResponse } from '../lecture/types';
+import type { FetchUsersResponse } from '../user/types';
 import type {
 	CreateModuleParams,
-	FetchAllModulesResponse,
 	FetchModuleResponse,
+	FetchModulesResponse,
 	ModuleAssignmentParams,
 } from './types';
 
@@ -16,7 +17,7 @@ export const fetchAllModules = async () => {
 	if (!response.ok) {
 		throw await response.json();
 	}
-	return (await response.json()) as FetchAllModulesResponse;
+	return (await response.json()) as FetchModulesResponse;
 };
 
 export const fetchModule = async (id: string) => {
@@ -91,4 +92,26 @@ export const unassignUserFromModule = async (
 		throw await response.json();
 	}
 	return;
+};
+
+export const fetchAssignedModules = async () => {
+	const response = await fetch(`${MODULE_API_URL}/assigned`, {
+		credentials: 'include',
+		cache: 'no-store',
+	});
+	if (!response.ok) {
+		throw await response.json();
+	}
+	return (await response.json()) as FetchModulesResponse;
+};
+
+export const fetchModuleLectures = async (moduleId: string) => {
+	const response = await fetch(`${MODULE_API_URL}/${moduleId}/lectures`, {
+		credentials: 'include',
+		cache: 'no-store',
+	});
+	if (!response.ok) {
+		throw await response.json();
+	}
+	return (await response.json()) as FetchLecturesResponse;
 };

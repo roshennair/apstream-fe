@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { Work_Sans } from 'next/font/google';
 import { ReactNode } from 'react';
 import { AuthProvider, RouteProtector } from './_contexts/auth';
+import 'video.js/dist/video-js.css';
 import './globals.css';
 
 const workSans = Work_Sans({

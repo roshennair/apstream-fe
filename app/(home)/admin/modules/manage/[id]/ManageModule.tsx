@@ -159,7 +159,7 @@ const ManageModule = ({ id }: { id: string }) => {
 				</div>
 				<div className="mt-10">
 					<div className="flex justify-between items-end">
-						<h1 className="text-lg font-bold">Lecturers</h1>
+						<h3 className="text-lg font-bold">Lecturers</h3>
 						<Link href={`/admin/modules/assign-lecturer/${id}`}>
 							<Button>Assign lecturer</Button>
 						</Link>
@@ -173,7 +173,7 @@ const ManageModule = ({ id }: { id: string }) => {
 				</div>
 				<div className="mt-10">
 					<div className="flex justify-between items-end">
-						<h1 className="text-lg font-bold">Students</h1>
+						<h3 className="text-lg font-bold">Students</h3>
 						<Link href={`/admin/modules/assign-student/${id}`}>
 							<Button>Assign student</Button>
 						</Link>

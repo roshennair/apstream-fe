@@ -6,7 +6,7 @@ export type Module = {
 	updatedAt: string;
 };
 
-export type FetchAllModulesResponse = {
+export type FetchModulesResponse = {
 	modules: Module[];
 };
 
