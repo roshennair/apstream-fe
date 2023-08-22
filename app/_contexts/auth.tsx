@@ -92,7 +92,7 @@ export const RouteProtector = ({ children }: { children: ReactNode }) => {
 					break;
 				case 'lecturer':
 					if (!pathname.startsWith('/lecturer')) {
-						push('/lecturer');
+						push('/lecturer/modules');
 					}
 					break;
 				case 'student':
