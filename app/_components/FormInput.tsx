@@ -18,7 +18,7 @@ const FormInput = <FormValues extends FieldValues>({
 	label: string;
 	name: Path<FormValues>;
 	register: UseFormRegister<FormValues>;
-	type?: HTMLInputTypeAttribute;
+	type?: HTMLInputTypeAttribute | 'multiline';
 	required?: boolean;
 	error?: FieldError;
 	placeholder?: string;
@@ -32,15 +32,27 @@ const FormInput = <FormValues extends FieldValues>({
 					{label}
 					{required ? <span className="text-red-600">*</span> : ''}
 				</label>
-				<input
-					{...register(name, { required })}
-					className="border-2 px-2 py-1 rounded-md"
-					id={`${name}-input`}
-					name={name}
-					type={type}
-					placeholder={placeholder}
-					required={required}
-				/>
+				{type === 'multiline' ? (
+					<textarea
+						{...register(name, { required })}
+						className="border-2 px-2 py-1 rounded-md"
+						id={`${name}-input`}
+						name={name}
+						placeholder={placeholder}
+						required={required}
+						rows={3}
+					/>
+				) : (
+					<input
+						{...register(name, { required })}
+						className="border-2 px-2 py-1 rounded-md"
+						id={`${name}-input`}
+						name={name}
+						type={type}
+						placeholder={placeholder}
+						required={required}
+					/>
+				)}
 			</div>
 			{errorMessage && (
 				<p className="mt-1 text-red-600">{errorMessage}</p>
