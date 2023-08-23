@@ -1,14 +1,10 @@
 import { Metadata } from 'next';
+import LectureSearchForm from './LectureSearchForm';
 
 const LectureSearchPage = () => {
-	return (
-		<>
-			<h1 className="text-3xl font-bold">Search</h1>
-			<div className="mt-5"></div>
-		</>
-	);
+	return <LectureSearchForm />;
 };
 
 export default LectureSearchPage;
 
-export const metadata: Metadata = { title: 'Search | APStream' };
+export const metadata: Metadata = { title: 'Lecture Search | APStream' };

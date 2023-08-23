@@ -1,6 +1,7 @@
 import type {
 	SearchLecturersResponse,
 	SearchLecturersUnassignedToModuleParams,
+	SearchLecturesResponse,
 	SearchStudentsResponse,
 	SearchStudentsUnassignedToModuleParams,
 } from './types';
@@ -41,4 +42,15 @@ export const searchStudentsUnassignedToModule = async (
 		throw await response.json();
 	}
 	return (await response.json()) as SearchStudentsResponse;
+};
+
+export const searchLectures = async (query: string) => {
+	const response = await fetch(`${SEARCH_API_URL}/lectures?q=${query}`, {
+		credentials: 'include',
+		cache: 'no-store',
+	});
+	if (!response.ok) {
+		throw await response.json();
+	}
+	return (await response.json()) as SearchLecturesResponse;
 };

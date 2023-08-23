@@ -1,3 +1,4 @@
+import type { Lecture } from '../lecture/types';
 import type { User } from '../user/types';
 
 export type SearchLecturersUnassignedToModuleParams = {
@@ -16,4 +17,8 @@ export type SearchStudentsUnassignedToModuleParams = {
 
 export type SearchStudentsResponse = {
 	students: User[];
+};
+
+export type SearchLecturesResponse = {
+	lectures: Lecture[];
 };
