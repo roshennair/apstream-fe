@@ -8,7 +8,8 @@ const StudentLayout = ({ children }: { children: ReactNode }) => {
 	return (
 		<div className="flex gap-5">
 			<SideBar>
-				<SideBarLink link={'/student'}>Dashboard</SideBarLink>
+				<SideBarLink link={'/student/modules'}>Modules</SideBarLink>
+				<SideBarLink link={'/student/search'}>Search</SideBarLink>
 			</SideBar>
 			<div className="p-2 w-full">{children}</div>
 		</div>

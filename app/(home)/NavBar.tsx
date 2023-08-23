@@ -11,7 +11,7 @@ const NavBar = () => {
 	};
 
 	return (
-		<div className="shadow sticky top-0 w-full bg-white">
+		<div className="shadow sticky top-0 z-10 w-full bg-white">
 			<div className="p-2 flex justify-between items-center mx-auto max-w-7xl">
 				<h1 className="font-bold text-xl text-blue-600">APStream</h1>
 				<div className="flex items-center">

@@ -4,7 +4,7 @@ import { Metadata } from 'next';
 const WatchLecturePage = ({ params: { id } }: { params: { id: string } }) => {
 	return (
 		<>
-			<LecturePlayer lectureId={id} userType="lecturer" />
+			<LecturePlayer lectureId={id} userType="student" />
 		</>
 	);
 };

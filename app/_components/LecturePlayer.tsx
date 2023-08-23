@@ -32,11 +32,13 @@ const createCommentSchema = z.object({
 
 const SingleComment = ({
 	comment,
+	isLecturer,
 	canReply = false,
 	handleReply,
 	handleDelete,
 }: {
 	comment: Comment;
+	isLecturer?: boolean;
 	canReply?: boolean;
 	// eslint-disable-next-line no-unused-vars
 	handleReply?: (parentId: string, content: string) => Promise<void>;
@@ -87,24 +89,26 @@ const SingleComment = ({
 						</span>
 						<p>{comment.content}</p>
 					</div>
-					<div className="basis-6 ml-2 flex gap-1">
-						{canReply && !showReplyInput && (
+					{isLecturer && (
+						<div className="basis-6 ml-2 flex gap-1">
+							{canReply && !showReplyInput && (
+								<div
+									className="rounded-full p-2 hover:bg-gray-200 cursor-pointer"
+									onClick={() => setShowReplyInput(true)}
+									title="Reply"
+								>
+									<GoReply className="text-blue-600 text-xl" />
+								</div>
+							)}
 							<div
 								className="rounded-full p-2 hover:bg-gray-200 cursor-pointer"
-								onClick={() => setShowReplyInput(true)}
-								title="Reply"
+								title="Delete"
+								onClick={() => handleDelete(comment.id)}
 							>
-								<GoReply className="text-blue-600 text-xl" />
+								<FaTrash className="text-red-600 text-xl" />
 							</div>
-						)}
-						<div
-							className="rounded-full p-2 hover:bg-gray-200 cursor-pointer"
-							title="Delete"
-							onClick={() => handleDelete(comment.id)}
-						>
-							<FaTrash className="text-red-600 text-xl" />
 						</div>
-					</div>
+					)}
 				</div>
 			</div>
 			{showReplyInput && (
@@ -141,10 +145,25 @@ const SingleComment = ({
 	);
 };
 
-const LecturePlayer = ({ lectureId }: { lectureId: string }) => {
+const LecturePlayer = ({
+	lectureId,
+	userType,
+}: {
+	lectureId: string;
+	userType: 'lecturer' | 'student';
+}) => {
 	const [lecture, setLecture] = useState<Lecture | null>(null);
 	const [comments, setComments] = useState<Comment[] | null>(null);
 	const playerRef = useRef<Player | null>(null);
+	const {
+		register,
+		handleSubmit,
+		reset: resetNewComment,
+		formState: { errors, isValid },
+	} = useForm<CreateCommentParams>({
+		resolver: zodResolver(createCommentSchema),
+	});
+	const [commentsLoading, setCommentsLoading] = useState(false);
 
 	const organizeComments = (comments: Comment[]) => {
 		const nestedComments: Comment[] = [];
@@ -170,11 +189,11 @@ const LecturePlayer = ({ lectureId }: { lectureId: string }) => {
 			result.push({ comment, replyComment });
 		});
 
+		// sort the comments by date such that the latest comment is at the top
 		result.sort((a, b) => {
-			return (
-				new Date(a.comment.createdAt).getTime() -
-				new Date(b.comment.createdAt).getTime()
-			);
+			const aDate = new Date(a.comment.createdAt);
+			const bDate = new Date(b.comment.createdAt);
+			return bDate.getTime() - aDate.getTime();
 		});
 
 		return result;
@@ -231,6 +250,26 @@ const LecturePlayer = ({ lectureId }: { lectureId: string }) => {
 	if (!lecture) {
 		return <Spinner></Spinner>;
 	}
+
+	const handleComment: SubmitHandler<CreateCommentParams> = async (data) => {
+		try {
+			setCommentsLoading(true);
+			await createComment({
+				content: data.content,
+				lectureId,
+				parentId: null,
+			});
+			setCommentsLoading(false);
+			resetNewComment();
+			fetchComments();
+		} catch (res) {
+			if (isFailureResponse(res)) {
+				toast.error(res.error);
+			} else {
+				toast.error('Error creating comment');
+			}
+		}
+	};
 
 	const handleDeleteComment = async (id: string) => {
 		try {
@@ -302,6 +341,26 @@ const LecturePlayer = ({ lectureId }: { lectureId: string }) => {
 				</div>
 				<div className="mt-5">
 					<h3 className="text-lg font-bold">Comments</h3>
+					<form
+						className="mt-1 flex flex-col gap-1"
+						onSubmit={handleSubmit(handleComment)}
+					>
+						<FormInput
+							register={register}
+							label="Enter new comment"
+							name="content"
+							required
+							error={errors.content}
+						/>
+						<div className="flex gap-1 justify-end">
+							<Button
+								disabled={commentsLoading || !isValid}
+								type="submit"
+							>
+								{commentsLoading ? 'Sending...' : 'Send'}
+							</Button>
+						</div>
+					</form>
 					<div className="mt-3">
 						{!comments
 							? 'Loading...'
@@ -317,12 +376,18 @@ const LecturePlayer = ({ lectureId }: { lectureId: string }) => {
 												handleDelete={
 													handleDeleteComment
 												}
+												isLecturer={
+													userType === 'lecturer'
+												}
 											/>
 											{replyComment && (
 												<SingleComment
 													comment={replyComment}
 													handleDelete={
 														handleDeleteComment
+													}
+													isLecturer={
+														userType === 'lecturer'
 													}
 												/>
 											)}

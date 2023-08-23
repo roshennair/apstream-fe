@@ -1,18 +1,16 @@
 'use client';
 
-import Button from '@/app/_components/Button';
 import LectureCard from '@/app/_components/LectureCard';
 import { isFailureResponse } from '@/app/_services';
 import type { Lecture } from '@/app/_services/lecture/types';
 import { fetchModule, fetchModuleLectures } from '@/app/_services/module';
 import { Module } from '@/app/_services/module/types';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { BiArrowBack } from 'react-icons/bi';
 
-const ManageModule = ({ id }: { id: string }) => {
+const ViewLectures = ({ id }: { id: string }) => {
 	const { push } = useRouter();
 	const [module, setModule] = useState<Module | null>(null);
 	const [lectures, setLectures] = useState<Lecture[] | null>(null);
@@ -21,7 +19,7 @@ const ManageModule = ({ id }: { id: string }) => {
 		try {
 			const { module } = await fetchModule(id);
 			if (!module) {
-				push('/lecturer/modules');
+				push('/student/modules');
 			}
 			setModule(module);
 		} catch (res) {
@@ -58,9 +56,9 @@ const ManageModule = ({ id }: { id: string }) => {
 				<BiArrowBack
 					title="Back"
 					className="text-2xl text-blue-600 cursor-pointer"
-					onClick={() => push('/lecturer/modules')}
+					onClick={() => push('/student/modules')}
 				/>
-				<h1 className="text-3xl font-bold pl-3">Manage Module</h1>
+				<h1 className="text-3xl font-bold pl-3">View Lectures</h1>
 			</div>
 			<div className="mt-5">
 				<div>
@@ -68,12 +66,7 @@ const ManageModule = ({ id }: { id: string }) => {
 					{module ? `${module.name} (${module.code})` : 'Loading...'}
 				</div>
 				<div className="mt-5">
-					<div className="flex justify-between items-end">
-						<h3 className="text-lg font-bold">Module playlist</h3>
-						<Link href="/lecturer/upload">
-							<Button>Upload lecture</Button>
-						</Link>
-					</div>
+					<h3 className="text-lg font-bold">Module playlist</h3>
 					<div className="mt-4 flex flex-col gap-4">
 						{!lectures ? (
 							<div>Loading...</div>
@@ -84,7 +77,7 @@ const ManageModule = ({ id }: { id: string }) => {
 								<div key={lecture.id}>
 									<LectureCard
 										lecture={lecture}
-										userType="lecturer"
+										userType="student"
 									/>
 								</div>
 							))
@@ -96,4 +89,4 @@ const ManageModule = ({ id }: { id: string }) => {
 	);
 };
 
-export default ManageModule;
+export default ViewLectures;

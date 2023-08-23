@@ -6,7 +6,7 @@ const ModulesListPage = () => {
 		<>
 			<h1 className="text-3xl font-bold">Modules</h1>
 			<div className="mt-5">
-				<ModulesTable userType="lecturer" />
+				<ModulesTable userType="student" />
 			</div>
 		</>
 	);

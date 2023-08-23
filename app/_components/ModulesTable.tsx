@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 
-const LecturerModulesTable = () => {
+const ModulesTable = ({ userType }: { userType: 'lecturer' | 'student' }) => {
 	const [modules, setModules] = useState<Module[] | null>(null);
 
 	const fetchModules = async () => {
@@ -58,9 +58,13 @@ const LecturerModulesTable = () => {
 								<td className="p-2">{module.name}</td>
 								<td className="p-2 text-right">
 									<Link
-										href={`/lecturer/modules/${module.id}`}
+										href={`/${userType}/modules/${module.id}`}
 									>
-										<Button>Manage</Button>
+										<Button>
+											{userType === 'lecturer'
+												? 'Manage module'
+												: 'View lectures'}
+										</Button>
 									</Link>
 								</td>
 							</tr>
@@ -78,4 +82,4 @@ const LecturerModulesTable = () => {
 	);
 };
 
-export default LecturerModulesTable;
+export default ModulesTable;

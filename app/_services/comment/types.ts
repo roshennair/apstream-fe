@@ -15,6 +15,6 @@ export type FetchCommentsResponse = {
 
 export type CreateCommentParams = {
 	lectureId: string;
-	parentId: string;
+	parentId: string | null;
 	content: string;
 };
