@@ -64,13 +64,14 @@ const LectureSearchForm = () => {
 						label="Enter a keyword to search for matching lectures"
 					/>
 					<div className="flex justify-end gap-2">
-						{lectures && (
+						{lectures && isValid && (
 							<Button
 								color="red"
 								onClick={() => {
 									setLectures(null);
 									reset();
 								}}
+								disabled={isSearching}
 							>
 								Clear
 							</Button>
@@ -107,7 +108,10 @@ const LectureSearchForm = () => {
 								))}
 							</div>
 						) : (
-							<p>No matching lectures found.</p>
+							<p>
+								No matching lectures found in your assigned
+								modules.
+							</p>
 						)}
 					</>
 				)}

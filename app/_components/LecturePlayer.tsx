@@ -30,6 +30,28 @@ const createCommentSchema = z.object({
 	content: z.string().nonempty(),
 });
 
+const ExpandableDescription = ({ description }: { description: string }) => {
+	const [expand, setExpand] = useState(false);
+
+	return (
+		<div className="flex flex-col items-end">
+			<div className="w-full">
+				<p className={`mt-3 ${!expand && 'line-clamp-1'}`}>
+					{description}
+				</p>
+			</div>
+			<span
+				className="text-blue-600 cursor-pointer font-semibold"
+				onClick={() => {
+					setExpand(!expand);
+				}}
+			>
+				{expand ? 'Show less' : 'Show more'}
+			</span>
+		</div>
+	);
+};
+
 const SingleComment = ({
 	comment,
 	isLecturer,
@@ -145,16 +167,17 @@ const SingleComment = ({
 	);
 };
 
-const LecturePlayer = ({
+const CommentSection = ({
 	lectureId,
 	userType,
 }: {
 	lectureId: string;
 	userType: 'lecturer' | 'student';
 }) => {
-	const [lecture, setLecture] = useState<Lecture | null>(null);
 	const [comments, setComments] = useState<Comment[] | null>(null);
-	const playerRef = useRef<Player | null>(null);
+	const [commentsLoading, setCommentsLoading] = useState(false);
+	const [showComments, setShowComments] = useState(true);
+
 	const {
 		register,
 		handleSubmit,
@@ -163,7 +186,6 @@ const LecturePlayer = ({
 	} = useForm<CreateCommentParams>({
 		resolver: zodResolver(createCommentSchema),
 	});
-	const [commentsLoading, setCommentsLoading] = useState(false);
 
 	const organizeComments = (comments: Comment[]) => {
 		const nestedComments: Comment[] = [];
@@ -204,20 +226,6 @@ const LecturePlayer = ({
 		[comments]
 	);
 
-	const fetchCurrentLecture = async () => {
-		try {
-			const { lecture } = await fetchLecture(lectureId);
-			setLecture(lecture);
-			document.title = `${lecture.title} | APStream`;
-		} catch (res) {
-			if (isFailureResponse(res)) {
-				toast.error(res.error);
-			} else {
-				toast.error('Error fetching modules');
-			}
-		}
-	};
-
 	const fetchComments = async () => {
 		try {
 			const { comments } = await fetchCommentsByLectureId(lectureId);
@@ -232,24 +240,9 @@ const LecturePlayer = ({
 	};
 
 	useEffect(() => {
-		fetchCurrentLecture();
 		fetchComments();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
-
-	const handlePlayerReady = (player: Player) => {
-		playerRef.current = player;
-		player.on('waiting', () => {
-			videojs.log('Player is waiting');
-		});
-		player.on('dispose', () => {
-			videojs.log('Player will be disposed');
-		});
-	};
-
-	if (!lecture) {
-		return <Spinner></Spinner>;
-	}
 
 	const handleComment: SubmitHandler<CreateCommentParams> = async (data) => {
 		try {
@@ -303,6 +296,122 @@ const LecturePlayer = ({
 
 	return (
 		<>
+			<div className="flex gap-2 items-center">
+				<h3 className="text-xl font-bold">Comments</h3>
+				<span
+					className="text-blue-600 cursor-pointer font-semibold"
+					onClick={() => setShowComments(!showComments)}
+				>
+					{showComments ? 'Hide' : 'Show'}
+				</span>
+			</div>
+			{showComments && (
+				<>
+					<form
+						className="mt-1 flex flex-col gap-1"
+						onSubmit={handleSubmit(handleComment)}
+					>
+						<FormInput
+							register={register}
+							label="Enter new comment"
+							name="content"
+							required
+							error={errors.content}
+						/>
+						<div className="flex gap-1 justify-end">
+							<Button
+								disabled={commentsLoading || !isValid}
+								type="submit"
+							>
+								{commentsLoading ? 'Sending...' : 'Send'}
+							</Button>
+						</div>
+					</form>
+					<div className="mt-3">
+						{!comments
+							? 'Loading...'
+							: comments.length === 0
+							? 'No comments yet.'
+							: organizedComments.map(
+									({ comment, replyComment }) => (
+										<div key={comment.id} className="mb-6">
+											<SingleComment
+												comment={comment}
+												canReply={!replyComment}
+												handleReply={handleReply}
+												handleDelete={
+													handleDeleteComment
+												}
+												isLecturer={
+													userType === 'lecturer'
+												}
+											/>
+											{replyComment && (
+												<SingleComment
+													comment={replyComment}
+													handleDelete={
+														handleDeleteComment
+													}
+													isLecturer={
+														userType === 'lecturer'
+													}
+												/>
+											)}
+										</div>
+									)
+							  )}
+					</div>
+				</>
+			)}
+		</>
+	);
+};
+
+const LecturePlayer = ({
+	lectureId,
+	userType,
+}: {
+	lectureId: string;
+	userType: 'lecturer' | 'student';
+}) => {
+	const [lecture, setLecture] = useState<Lecture | null>(null);
+	const playerRef = useRef<Player | null>(null);
+
+	const fetchCurrentLecture = async () => {
+		try {
+			const { lecture } = await fetchLecture(lectureId);
+			setLecture(lecture);
+			document.title = `${lecture.title} | APStream`;
+		} catch (res) {
+			if (isFailureResponse(res)) {
+				toast.error(res.error);
+			} else {
+				toast.error('Error fetching modules');
+			}
+		}
+	};
+
+	useEffect(() => {
+		fetchCurrentLecture();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	const handlePlayerReady = (player: Player) => {
+		playerRef.current = player;
+		player.on('waiting', () => {
+			videojs.log('Player is waiting');
+		});
+		player.on('dispose', () => {
+			videojs.log('Player will be disposed');
+		});
+	};
+
+	if (!lecture) {
+		return <Spinner></Spinner>;
+	}
+
+	return (
+		<>
 			<div>
 				<VideoPlayer
 					options={{
@@ -337,64 +446,10 @@ const LecturePlayer = ({
 							</span>
 						))}
 					</div>
-					<p className="mt-3">{lecture.description}</p>
+					<ExpandableDescription description={lecture.description} />
 				</div>
 				<div className="mt-5">
-					<h3 className="text-lg font-bold">Comments</h3>
-					<form
-						className="mt-1 flex flex-col gap-1"
-						onSubmit={handleSubmit(handleComment)}
-					>
-						<FormInput
-							register={register}
-							label="Enter new comment"
-							name="content"
-							required
-							error={errors.content}
-						/>
-						<div className="flex gap-1 justify-end">
-							<Button
-								disabled={commentsLoading || !isValid}
-								type="submit"
-							>
-								{commentsLoading ? 'Sending...' : 'Send'}
-							</Button>
-						</div>
-					</form>
-					<div className="mt-3">
-						{!comments
-							? 'Loading...'
-							: comments.length === 0
-							? 'No comments yet'
-							: organizedComments.map(
-									({ comment, replyComment }) => (
-										<div key={comment.id} className="mb-6">
-											<SingleComment
-												comment={comment}
-												canReply={!replyComment}
-												handleReply={handleReply}
-												handleDelete={
-													handleDeleteComment
-												}
-												isLecturer={
-													userType === 'lecturer'
-												}
-											/>
-											{replyComment && (
-												<SingleComment
-													comment={replyComment}
-													handleDelete={
-														handleDeleteComment
-													}
-													isLecturer={
-														userType === 'lecturer'
-													}
-												/>
-											)}
-										</div>
-									)
-							  )}
-					</div>
+					<CommentSection lectureId={lectureId} userType={userType} />
 				</div>
 			</div>
 			<Toaster
