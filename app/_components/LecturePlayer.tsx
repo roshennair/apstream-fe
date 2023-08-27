@@ -13,6 +13,7 @@ import type {
 import {
 	fetchCommentsByLectureId,
 	fetchLecture,
+	fetchNoteByLectureId,
 } from '@/app/_services/lecture';
 import type { Lecture } from '@/app/_services/lecture/types';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,6 +26,8 @@ import { GoReply } from 'react-icons/go';
 import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
 import { z } from 'zod';
+import { setNote } from '../_services/note';
+import NotePad from './NotePad';
 
 const createCommentSchema = z.object({
 	content: z.string().nonempty(),
@@ -367,6 +370,103 @@ const CommentSection = ({
 	);
 };
 
+const NotesButton = ({ lectureId }: { lectureId: string }) => {
+	const [showNotePad, setShowNotePad] = useState(false);
+	const [saveStatus, setSaveStatus] = useState<
+		'saved' | 'saving' | 'unsaved'
+	>('unsaved');
+	const [noteContent, setNoteContent] = useState<string | null>(null);
+
+	const fetchNote = async () => {
+		try {
+			const { note } = await fetchNoteByLectureId(lectureId);
+			setNoteContent(note ? note.content : null);
+		} catch (res) {
+			if (isFailureResponse(res)) {
+				toast.error(res.error);
+			} else {
+				toast.error('Error fetching notes');
+			}
+		}
+	};
+
+	const saveNote = async () => {
+		try {
+			setSaveStatus('saving');
+			await setNote({
+				content: noteContent || '',
+				lectureId,
+			});
+			setSaveStatus('saved');
+			toast.success('Notes saved');
+		} catch (res) {
+			if (isFailureResponse(res)) {
+				toast.error(res.error);
+			} else {
+				toast.error('Error saving notes');
+			}
+		}
+	};
+
+	useEffect(() => {
+		fetchNote();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	if (showNotePad) {
+		document.documentElement.style.overflow = 'hidden';
+	} else {
+		document.documentElement.style.overflow = 'auto';
+	}
+
+	return (
+		<div>
+			<Button onClick={() => setShowNotePad(true)}>Notes</Button>
+			{showNotePad && (
+				<div
+					className="z-20 fixed inset-0 w-screen bg-black/50 cursor-pointer"
+					onClick={() => setShowNotePad(false)}
+				>
+					<div
+						className="absolute top-0 right-0 bg-white w-full h-screen max-w-2xl p-4 cursor-default"
+						onClick={(e) => e.stopPropagation()}
+					>
+						<div className="flex justify-between mb-3 items-center">
+							<h3 className="text-xl font-bold">Notes</h3>
+							<div>
+								<Button
+									onClick={saveNote}
+									className="mr-2"
+									disabled={saveStatus !== 'unsaved'}
+								>
+									{saveStatus === 'saving'
+										? 'Saving...'
+										: saveStatus === 'saved'
+										? 'Saved'
+										: 'Save'}
+								</Button>
+								<Button
+									onClick={() => setShowNotePad(false)}
+									color="red"
+								>
+									Close
+								</Button>
+							</div>
+						</div>
+						<NotePad
+							content={noteContent}
+							setContent={(content: string) => {
+								setNoteContent(content);
+								setSaveStatus('unsaved');
+							}}
+						/>
+					</div>
+				</div>
+			)}
+		</div>
+	);
+};
+
 const LecturePlayer = ({
 	lectureId,
 	userType,
@@ -411,46 +511,50 @@ const LecturePlayer = ({
 	}
 
 	return (
-		<>
-			<div>
-				<VideoPlayer
-					options={{
-						autoplay: false,
-						controls: true,
-						responsive: true,
-						fluid: true,
-						sources: [
-							{
-								src: `https://vz-9af7cb32-c20.b-cdn.net/${lecture.videoId}/playlist.m3u8`,
-								type: 'application/x-mpegURL',
-							},
-						],
-						playbackRates: [0.5, 1, 1.5, 2],
-					}}
-					onReady={handlePlayerReady}
-				/>
-				<div className="mt-5">
+		<div>
+			<VideoPlayer
+				options={{
+					autoplay: false,
+					controls: true,
+					responsive: true,
+					fluid: true,
+					sources: [
+						{
+							src: `https://vz-9af7cb32-c20.b-cdn.net/${lecture.videoId}/playlist.m3u8`,
+							type: 'application/x-mpegURL',
+						},
+					],
+					playbackRates: [0.5, 1, 1.5, 2],
+				}}
+				onReady={handlePlayerReady}
+			/>
+			<div className="mt-3">
+				<div className="flex items-start justify-between">
 					<h1 className="text-3xl font-bold">{lecture.title}</h1>
-					<div className="text-gray-500 mt-1">
-						{`Uploaded on ${new Date(
-							lecture.createdAt
-						).toLocaleDateString('en-uk')} ${
-							lecture.tags.length > 0 ? '•' : ''
-						}`}
-						{lecture.tags.map((tag, i) => (
-							<span
-								className="text-white text-sm py-1 px-2 rounded-full ml-1 bg-blue-600 lowercase"
-								key={i}
-							>
-								{tag}
-							</span>
-						))}
+					<div className="flex gap-2">
+						<NotesButton lectureId={lectureId} />
+						<Button>Bookmarks</Button>
 					</div>
-					<ExpandableDescription description={lecture.description} />
 				</div>
-				<div className="mt-5">
-					<CommentSection lectureId={lectureId} userType={userType} />
+				<div className="text-gray-500 mt-2">
+					{`Uploaded on ${new Date(
+						lecture.createdAt
+					).toLocaleDateString('en-uk')} ${
+						lecture.tags.length > 0 ? '•' : ''
+					}`}
+					{lecture.tags.map((tag, i) => (
+						<span
+							className="text-white text-sm py-1 px-2 rounded-full ml-1 bg-blue-600 lowercase"
+							key={i}
+						>
+							{tag}
+						</span>
+					))}
 				</div>
+				<ExpandableDescription description={lecture.description} />
+			</div>
+			<div className="mt-5">
+				<CommentSection lectureId={lectureId} userType={userType} />
 			</div>
 			<Toaster
 				toastOptions={{
@@ -458,7 +562,7 @@ const LecturePlayer = ({
 					position: 'bottom-center',
 				}}
 			/>
-		</>
+		</div>
 	);
 };
 
