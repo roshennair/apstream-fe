@@ -1,4 +1,5 @@
 import { Upload } from 'tus-js-client';
+import type { FetchBookmarksResponse } from '../bookmark/types';
 import type { FetchCommentsResponse } from '../comment/types';
 import type { FetchNoteResponse } from '../note/types';
 import type {
@@ -41,6 +42,17 @@ export const fetchNoteByLectureId = async (lectureId: string) => {
 		throw await response.json();
 	}
 	return (await response.json()) as FetchNoteResponse;
+};
+
+export const fetchBookmarksByLectureId = async (lectureId: string) => {
+	const response = await fetch(`${LECTURE_API_URL}/${lectureId}/bookmarks`, {
+		credentials: 'include',
+		cache: 'no-store',
+	});
+	if (!response.ok) {
+		throw await response.json();
+	}
+	return (await response.json()) as FetchBookmarksResponse;
 };
 
 export const createLecture = async (params: CreateLectureParams) => {

@@ -11,6 +11,7 @@ import type {
 	CreateCommentParams,
 } from '@/app/_services/comment/types';
 import {
+	fetchBookmarksByLectureId,
 	fetchCommentsByLectureId,
 	fetchLecture,
 	fetchNoteByLectureId,
@@ -20,18 +21,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Toaster, toast } from 'react-hot-toast';
+import { BiTimeFive } from 'react-icons/bi';
 import { BsArrowReturnRight } from 'react-icons/bs';
 import { FaTrash } from 'react-icons/fa';
 import { GoReply } from 'react-icons/go';
 import videojs from 'video.js';
 import Player from 'video.js/dist/types/player';
 import { z } from 'zod';
+import { createBookmark, deleteBookmark } from '../_services/bookmark';
+import type { Bookmark } from '../_services/bookmark/types';
 import { setNote } from '../_services/note';
 import NotePad from './NotePad';
-
-const createCommentSchema = z.object({
-	content: z.string().nonempty(),
-});
 
 const ExpandableDescription = ({ description }: { description: string }) => {
 	const [expand, setExpand] = useState(false);
@@ -54,6 +54,240 @@ const ExpandableDescription = ({ description }: { description: string }) => {
 		</div>
 	);
 };
+
+type NewBookmarkFormFields = {
+	timestamp: string;
+	label: string;
+};
+
+const newBookmarkSchema = z.object({
+	timestamp: z.string().regex(/^\d{2}:\d{2}:\d{2}$/, {
+		message: 'Timestamp must be in the format hh:mm:ss',
+	}),
+	label: z.string().nonempty({ message: 'Label cannot be empty' }),
+});
+
+const convertSecondsToTimestamp = (totalSeconds: number) => {
+	const hours = Math.floor(totalSeconds / 3600);
+	const minutes = Math.floor((totalSeconds - hours * 3600) / 60);
+	const seconds = Math.floor(totalSeconds - hours * 3600 - minutes * 60);
+	// pad with 0 if necessary
+	const hoursStr = hours.toString().padStart(2, '0');
+	const minutesStr = minutes.toString().padStart(2, '0');
+	const secondsStr = seconds.toString().padStart(2, '0');
+	return `${hoursStr}:${minutesStr}:${secondsStr}`;
+};
+
+const SingleBookmark = ({
+	bookmark,
+	handleClick,
+	handleDelete,
+}: {
+	bookmark: Bookmark;
+	handleClick: () => void;
+	// eslint-disable-next-line no-unused-vars
+	handleDelete: (id: string) => Promise<void>;
+}) => {
+	return (
+		<div className="flex gap-2 items-center">
+			<div
+				className="border-2 w-full border-blue-600 hover:bg-blue-600 hover:text-white rounded-lg py-2 px-3 transition-colors cursor-pointer text-lg gap-3 flex items-center"
+				onClick={handleClick}
+			>
+				<BiTimeFive />
+				<span>
+					{convertSecondsToTimestamp(bookmark.timestampSeconds)}
+				</span>
+				<span className="font-bold">{bookmark.label}</span>
+			</div>
+			<div
+				className="bg-white p-2 rounded-full hover:bg-gray-200 cursor-pointer"
+				title="Delete"
+				onClick={() => handleDelete(bookmark.id)}
+			>
+				<FaTrash className="text-red-600 text-xl" />
+			</div>
+		</div>
+	);
+};
+
+const BookmarkSection = ({
+	lectureId,
+	getPlayerTime,
+	setPlayerTime,
+}: {
+	lectureId: string;
+	getPlayerTime: () => number;
+	// eslint-disable-next-line no-unused-vars
+	setPlayerTime: (time: number) => void;
+}) => {
+	const [bookmarks, setBookmarks] = useState<Bookmark[] | null>(null);
+	const [bookmarksLoading, setBookmarksLoading] = useState(false);
+	const [showBookmarks, setShowBookmarks] = useState(false);
+
+	const {
+		register,
+		handleSubmit,
+		setValue,
+		trigger,
+		reset: resetNewBookmark,
+		formState: { errors, isValid },
+	} = useForm<NewBookmarkFormFields>({
+		resolver: zodResolver(newBookmarkSchema),
+		defaultValues: {
+			label: 'New bookmark',
+		},
+	});
+
+	const fetchBookmarks = async () => {
+		try {
+			const { bookmarks } = await fetchBookmarksByLectureId(lectureId);
+			setBookmarks(bookmarks);
+		} catch (res) {
+			if (isFailureResponse(res)) {
+				toast.error(res.error);
+			} else {
+				toast.error('Error fetching bookmarks');
+			}
+		}
+	};
+
+	useEffect(() => {
+		fetchBookmarks();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	// convert hh:mm:ss to seconds
+	const convertTimestampToSeconds = (timestamp: string) => {
+		const [hours, minutes, seconds] = timestamp.split(':');
+		return (
+			parseInt(hours) * 3600 + parseInt(minutes) * 60 + parseInt(seconds)
+		);
+	};
+
+	const handleCreateBookmark: SubmitHandler<NewBookmarkFormFields> = async (
+		data
+	) => {
+		try {
+			setBookmarksLoading(true);
+			await createBookmark({
+				label: data.label,
+				timestampSeconds: convertTimestampToSeconds(data.timestamp),
+				lectureId,
+			});
+			setBookmarksLoading(false);
+			resetNewBookmark();
+			fetchBookmarks();
+		} catch (res) {
+			if (isFailureResponse(res)) {
+				toast.error(res.error);
+			} else {
+				toast.error('Error creating bookmark');
+			}
+		}
+	};
+
+	const handleDeleteBookmark = async (id: string) => {
+		try {
+			await deleteBookmark(id);
+			fetchBookmarks();
+		} catch (res) {
+			if (isFailureResponse(res)) {
+				toast.error(res.error);
+			} else {
+				toast.error('Error deleting bookmark');
+			}
+		}
+	};
+
+	return (
+		<>
+			<div className="flex gap-2 items-center">
+				<h3 className="text-xl font-bold">Bookmarks</h3>
+				<span
+					className="text-blue-600 cursor-pointer font-semibold"
+					onClick={() => setShowBookmarks(!showBookmarks)}
+				>
+					{showBookmarks ? 'Hide' : 'Show'}
+				</span>
+			</div>
+			{showBookmarks && (
+				<>
+					<form
+						className="mt-1 flex flex-col gap-3"
+						onSubmit={handleSubmit(handleCreateBookmark)}
+					>
+						<div className="flex items-end gap-2">
+							<div className="w-full">
+								<FormInput
+									register={register}
+									name="timestamp"
+									label="Timestamp"
+									required
+									error={errors.timestamp}
+								/>
+							</div>
+							<Button
+								onClick={() => {
+									setValue(
+										'timestamp',
+										convertSecondsToTimestamp(
+											getPlayerTime()
+										)
+									);
+									trigger('timestamp');
+								}}
+							>
+								Now
+							</Button>
+						</div>
+						<FormInput
+							register={register}
+							name="label"
+							label="Label"
+							required
+							error={errors.label}
+						/>
+						<div className="flex justify-end">
+							<Button
+								disabled={bookmarksLoading || !isValid}
+								type="submit"
+							>
+								{bookmarksLoading ? 'Saving...' : 'Save'}
+							</Button>
+						</div>
+					</form>
+					<div className="mt-3">
+						<h4 className="text-lg mb-2">Existing bookmarks</h4>
+						<div className="flex flex-col gap-4">
+							{!bookmarks
+								? 'Loading bookmarks...'
+								: bookmarks.length === 0
+								? 'No bookmarks yet.'
+								: bookmarks.map((bookmark) => (
+										<SingleBookmark
+											key={bookmark.id}
+											bookmark={bookmark}
+											handleClick={() => {
+												setPlayerTime(
+													bookmark.timestampSeconds
+												);
+												setShowBookmarks(false);
+											}}
+											handleDelete={handleDeleteBookmark}
+										/>
+								  ))}
+						</div>
+					</div>
+				</>
+			)}
+		</>
+	);
+};
+
+const createCommentSchema = z.object({
+	content: z.string().nonempty(),
+});
 
 const SingleComment = ({
 	comment,
@@ -310,26 +544,28 @@ const CommentSection = ({
 			</div>
 			{showComments && (
 				<>
-					<form
-						className="mt-1 flex flex-col gap-1"
-						onSubmit={handleSubmit(handleComment)}
-					>
-						<FormInput
-							register={register}
-							label="Enter new comment"
-							name="content"
-							required
-							error={errors.content}
-						/>
-						<div className="flex gap-1 justify-end">
-							<Button
-								disabled={commentsLoading || !isValid}
-								type="submit"
-							>
-								{commentsLoading ? 'Sending...' : 'Send'}
-							</Button>
-						</div>
-					</form>
+					{userType === 'student' && (
+						<form
+							className="mt-1 flex flex-col gap-1"
+							onSubmit={handleSubmit(handleComment)}
+						>
+							<FormInput
+								register={register}
+								label="Enter new comment"
+								name="content"
+								required
+								error={errors.content}
+							/>
+							<div className="flex gap-1 justify-end">
+								<Button
+									disabled={commentsLoading || !isValid}
+									type="submit"
+								>
+									{commentsLoading ? 'Sending...' : 'Send'}
+								</Button>
+							</div>
+						</form>
+					)}
 					<div className="mt-3">
 						{!comments
 							? 'Loading...'
@@ -531,10 +767,11 @@ const LecturePlayer = ({
 			<div className="mt-3">
 				<div className="flex items-start justify-between">
 					<h1 className="text-3xl font-bold">{lecture.title}</h1>
-					<div className="flex gap-2">
-						<NotesButton lectureId={lectureId} />
-						<Button>Bookmarks</Button>
-					</div>
+					{userType === 'student' && (
+						<div className="flex gap-2">
+							<NotesButton lectureId={lectureId} />
+						</div>
+					)}
 				</div>
 				<div className="text-gray-500 mt-2">
 					{`Uploaded on ${new Date(
@@ -553,6 +790,23 @@ const LecturePlayer = ({
 				</div>
 				<ExpandableDescription description={lecture.description} />
 			</div>
+			<hr className="mt-3" />
+			{userType === 'student' && (
+				<div className="mt-5">
+					<BookmarkSection
+						lectureId={lectureId}
+						getPlayerTime={() =>
+							playerRef.current?.currentTime() as number
+						}
+						setPlayerTime={(time) => {
+							playerRef.current?.currentTime(time);
+							window.scrollTo(0, 0);
+							playerRef.current?.play();
+						}}
+					/>
+					<hr className="mt-5" />
+				</div>
+			)}
 			<div className="mt-5">
 				<CommentSection lectureId={lectureId} userType={userType} />
 			</div>
