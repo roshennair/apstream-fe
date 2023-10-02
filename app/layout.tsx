@@ -1,12 +1,12 @@
 import { Metadata } from 'next';
-import { Work_Sans } from 'next/font/google';
+import localFont from 'next/font/local';
 import { ReactNode } from 'react';
-import { AuthProvider, RouteProtector } from './_contexts/auth';
 import 'video.js/dist/video-js.css';
+import { AuthProvider, RouteProtector } from './_contexts/auth';
 import './globals.css';
 
-const workSans = Work_Sans({
-	subsets: ['latin'],
+const workSans = localFont({
+	src: '../public/WorkSans.ttf',
 	display: 'swap',
 });
 
